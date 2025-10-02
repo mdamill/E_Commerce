@@ -1,7 +1,6 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import connectDB from './DB/index.js';
-import bodyParser from 'express'
 import cors from 'cors';
 
 dotenv.config(); // this allows access from the '.env'
@@ -9,7 +8,7 @@ dotenv.config(); // this allows access from the '.env'
 const app = express();
 
 // util code
-app.use(bodyParser.json())
+app.use(express.json()); // parses JSON in request bodies
 app.use(cors({
   origin:true,
   methods:[ "GET","POST","PUT","DELETE"],
