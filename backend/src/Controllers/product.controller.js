@@ -51,7 +51,7 @@ export const getProductById = async(req, res) =>{
         const product = await Product.findById(id);
 
         if(!product) 
-            res.json({
+            return res.json({
                 message : `Invalid ID !!!`,
                 success : false
             });
@@ -71,3 +71,30 @@ export const getProductById = async(req, res) =>{
 
 }
 
+// update product
+export const updateProduct = async(req, res) => {
+    const {id} = req.params;
+
+    try {
+
+        const product  = await Product.findByIdAndUpdate(id, req.body, {new:true});
+
+        if(!product) 
+            return res.json({
+                message : `Invalid ID !!!`,
+                success : false
+            });
+
+        res.json({
+            message : `Product Updated Successfully !`,
+            product,
+            success : true
+        });
+        
+    } catch (error) {
+        res.json({
+            message : error.message,
+            success : false
+        });
+    }
+}
