@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import connectDB from './DB/index.js';
 import cors from 'cors';
 import userRouter from './Routes/user.routes.js'
+import productRouter from './Routes/product.routes.js'
 
 dotenv.config(); // this allows access from the '.env'
 
@@ -24,7 +25,8 @@ app.get('/ping', (req, res) => {
 // user Router
 app.use('/api/user', userRouter)
 
-
+// product Router
+app.use('/api/product', productRouter);
 
 connectDB()
     .then(() => {
