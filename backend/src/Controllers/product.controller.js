@@ -23,78 +23,86 @@ export const addProduct = async (req, res) => {
 }
 
 // get all products
-export const getProducts = async(req, res) => {
+export const getProducts = async (req, res) => {
     try {
 
-        const allProducts = await Product.find({}).sort({createdAt:-1});
+        const allProducts = await Product.find({}).sort({ createdAt: -1 });
         res.json({
-            message : `All Products !!`,
+            message: `All Products !!`,
             allProducts,
-            success : true
+            success: true
         })
-        
+
     } catch (error) {
         res.json({
-            message : `Error in getting the Products !`,
-            success : false
+            message: `Error in getting the Products !`,
+            success: false
         })
     }
 }
 
 // get product by ID
-export const getProductById = async(req, res) =>{
+export const getProductById = async (req, res) => {
 
-    const {id} = req.params;
+    const { id } = req.params;
 
     try {
 
         const product = await Product.findById(id);
 
-        if(!product) 
+        if (!product)
             return res.json({
-                message : `Invalid ID !!!`,
-                success : false
+                message: `Invalid ID !!!`,
+                success: false
             });
 
         res.json({
-            message : `Product fetched Successfully !!!`,
+            message: `Product fetched Successfully !!!`,
             product,
-            success : true
+            success: true
         });
-        
+
     } catch (error) {
         res.json({
-            message : `Error in getting particular product !`,
-            success : false
+            message: `Error in getting particular product !`,
+            success: false
         });
     }
 
 }
 
 // update product
-export const updateProduct = async(req, res) => {
-    const {id} = req.params;
+export const updateProduct = async (req, res) => {
+    const { id } = req.params;
 
     try {
 
-        const product  = await Product.findByIdAndUpdate(id, req.body, {new:true});
+        const product = await Product.findByIdAndUpdate(id, req.body, { new: true });
 
-        if(!product) 
+        if (!product)
             return res.json({
-                message : `Invalid ID !!!`,
-                success : false
+                message: `Invalid ID !!!`,
+                success: false
             });
 
         res.json({
-            message : `Product Updated Successfully !`,
+            message: `Product Updated Successfully !`,
             product,
-            success : true
+            success: true
         });
-        
+
     } catch (error) {
         res.json({
-            message : error.message,
-            success : false
+            message: error.message,
+            success: false
         });
     }
 }
+
+// delete product by id
+export const deleteProductById = async (req, res) => {
+    const id = req.params.id;
+    let product = await Product.findByIdAndDelete(id)
+    if (!product) return res.json({ message: 'Invalid Id' })
+    res.json({ message: "Product has been deleted", product });
+}; 
