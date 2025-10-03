@@ -21,3 +21,23 @@ export const addProduct = async (req, res) => {
         })
     }
 }
+
+// get all products
+export const getProducts = async(req, res) => {
+    try {
+
+        const allProducts = await Product.find({}).sort({createdAt:-1});
+        res.json({
+            message : `All Products !!`,
+            allProducts,
+            success : true
+        })
+        
+    } catch (error) {
+        res.json({
+            message : `Error in getting the Products !`,
+            success : false
+        })
+    }
+}
+
