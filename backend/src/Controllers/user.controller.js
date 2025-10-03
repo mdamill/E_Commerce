@@ -13,7 +13,7 @@ export const register = async(req, res) => {
             return res.send({message: "User Already Exists !", success : false});
 
         //hasing password
-        const hashedPassword = await bcrypt.hash(password, 15);
+        const hashedPassword = await bcrypt.hash(password, 4);
 
         user = await User.create({
             username,
@@ -32,3 +32,33 @@ export const register = async(req, res) => {
         
     }
 };
+
+// user login 
+export const login = async(req, res) => {
+
+    const {email, password} = req.body;
+
+    try {
+
+        const user = await User.findOne({email});
+        if (!user) return res.json({ message: "User Not Find", success: false });
+
+        // password validation
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if(!isPasswordValid) return res.json({ message: "Invalid Password !", success: false });
+
+        res.json({
+            message : `${user.username} successfully Logged In !`,
+            success : true
+        })
+
+        
+    } catch (error) {
+        res.send({
+            message : error.message,
+            success : false
+        })
+        
+    }
+
+}
