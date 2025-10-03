@@ -41,3 +41,33 @@ export const getProducts = async(req, res) => {
     }
 }
 
+// get product by ID
+export const getProductById = async(req, res) =>{
+
+    const {id} = req.params;
+
+    try {
+
+        const product = await Product.findById(id);
+
+        if(!product) 
+            res.json({
+                message : `Invalid ID !!!`,
+                success : false
+            });
+
+        res.json({
+            message : `Product fetched Successfully !!!`,
+            product,
+            success : true
+        });
+        
+    } catch (error) {
+        res.json({
+            message : `Error in getting particular product !`,
+            success : false
+        });
+    }
+
+}
+
