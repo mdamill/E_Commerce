@@ -40,3 +40,23 @@ export const addToCart = async (req, res) => {
     }
 }
 
+// get user's cart
+export const userCart = async(req,res) => {
+
+    const userId = `68e0248983f696f89b9fadd2`;
+
+    let cart = await Cart.findOne({userId})
+
+    if(!cart)
+        return res.json({
+            message: error.message,
+            success: false
+        })
+    
+    res.json({
+            message: 'Cart successfully fetched !',
+            success: true,
+            cart
+        });
+}
+
