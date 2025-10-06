@@ -6,7 +6,7 @@ export const addToCart = async (req, res) => {
     try {
         const { productId, title, price, qty, imgSrc } = req.body;
 
-        const userId = `68e0248983f696f89b9fadd2`;
+        const userId = req.user;
 
         // Find or create cart in one line
         let cart = await Cart.findOne({ userId });
