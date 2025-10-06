@@ -43,7 +43,7 @@ export const addToCart = async (req, res) => {
 // get user's cart
 export const userCart = async (req, res) => {
 
-    const userId = `68e0248983f696f89b9fadd2`;
+    const userId = req.user;
 
     let cart = await Cart.findOne({ userId })
 
@@ -63,7 +63,7 @@ export const userCart = async (req, res) => {
 // remove product from the cart
 export const removeProductFromCart = async (req, res) => {
     const productId = req.params.productId;
-    const userId = `68e0248983f696f89b9fadd2`;
+    const userId = req.user;
 
     let cart = await Cart.findOne({ userId });
     if (!cart) return res.json({ messge: "Cart not found" });
@@ -77,7 +77,7 @@ export const removeProductFromCart = async (req, res) => {
 
 // clear cart items
 export const clearCart = async (req, res) => {
-    const userId = `68e0248983f696f89b9fadd2`;
+    const userId = req.user;
 
     try {
         let cart = await Cart.findOne({ userId })
@@ -104,7 +104,7 @@ export const clearCart = async (req, res) => {
 
 // Decrease product quantity in cart
 export const decreaseProductQty = async (req, res) => {
-    const userId = `68e0248983f696f89b9fadd2`;
+    const userId = req.user;
   try {
     const { productId, qty = 1 } = req.body; // default qty = 1
 
