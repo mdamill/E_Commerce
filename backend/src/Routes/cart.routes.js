@@ -14,6 +14,7 @@ router.delete('/remove/:productId', removeProductFromCart)
 // clear cart route
 router.delete('/clear', clearCart)
 
-
+// decrease quantity from the cart's route
+router.post('/--qty', decreaseProductQty)
 
 export default router;

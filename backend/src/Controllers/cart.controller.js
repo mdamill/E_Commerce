@@ -102,4 +102,32 @@ export const clearCart = async (req, res) => {
     }
 }
 
+// Decrease product quantity in cart
+export const decreaseProductQty = async (req, res) => {
+    const userId = `68e0248983f696f89b9fadd2`;
+  try {
+    const { productId, qty = 1 } = req.body; // default qty = 1
 
+    const cart = await Cart.findOne({ userId });
+    if (!cart) return res.status(404).json({ message: 'Cart not found' });
+
+    const item = cart.items.find(i => i.productId.toString() === productId);
+    if (!item) return res.status(400).json({ message: 'Product not found in cart' });
+
+    const pricePerUnit = item.price / item.qty;
+
+    if (item.qty > qty) {
+      item.qty -= qty;
+      item.price -= pricePerUnit * qty;
+    } else {
+      cart.items = cart.items.filter(i => i.productId.toString() !== productId);
+    }
+
+    await cart.save();
+    res.json({ message: 'Cart updated successfully', cart });
+
+  } catch (err) {
+    console.error('Error decreasing product qty:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
