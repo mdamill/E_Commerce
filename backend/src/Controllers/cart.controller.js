@@ -41,37 +41,65 @@ export const addToCart = async (req, res) => {
 }
 
 // get user's cart
-export const userCart = async(req,res) => {
+export const userCart = async (req, res) => {
 
     const userId = `68e0248983f696f89b9fadd2`;
 
-    let cart = await Cart.findOne({userId})
+    let cart = await Cart.findOne({ userId })
 
-    if(!cart)
+    if (!cart)
         return res.json({
             message: error.message,
             success: false
         })
-    
+
     res.json({
-            message: 'Cart successfully fetched !',
-            success: true,
-            cart
-        });
+        message: 'Cart successfully fetched !',
+        success: true,
+        cart
+    });
 }
 
 // remove product from the cart
 export const removeProductFromCart = async (req, res) => {
-  const productId = req.params.productId;
-  const userId = `68e0248983f696f89b9fadd2`;
+    const productId = req.params.productId;
+    const userId = `68e0248983f696f89b9fadd2`;
 
-  let cart = await Cart.findOne({ userId });
-  if (!cart) return res.json({ messge: "Cart not found" });
+    let cart = await Cart.findOne({ userId });
+    if (!cart) return res.json({ messge: "Cart not found" });
 
-  cart.items = cart.items.filter((item)=>item.productId.toString() !== productId)
+    cart.items = cart.items.filter((item) => item.productId.toString() !== productId)
 
-  await cart.save();
+    await cart.save();
 
-  res.json({ message: "product remove from cart"});
+    res.json({ message: "product remove from cart" });
 };
+
+// clear cart items
+export const clearCart = async (req, res) => {
+    const userId = `68e0248983f696f89b9fadd2`;
+
+    try {
+        let cart = await Cart.findOne({ userId })
+
+        if (!cart) {
+            cart = new Cart({ userId, items: [] })
+        } else {
+            cart.items = []
+        }
+
+        await cart.save()
+
+        res.json({
+            message: `Cart removed successfully !`,
+            success: true
+        })
+    } catch (error) {
+        res.json({
+            message: `Can't remove cart : ${error.message}`,
+            success: false
+        })
+    }
+}
+
 
