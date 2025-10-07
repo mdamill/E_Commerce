@@ -5,6 +5,7 @@ import cors from 'cors';
 import userRouter from './Routes/user.routes.js'
 import productRouter from './Routes/product.routes.js'
 import cartRouter from './Routes/cart.routes.js'
+import addressRouter from './Routes/address.routes.js'
 
 dotenv.config(); // this allows access from the '.env'
 
@@ -31,6 +32,9 @@ app.use('/api/product', productRouter);
 
 // cart Router
 app.use('/api/cart', cartRouter)
+
+// Router for address
+app.use('/api/address', addressRouter)
 
 connectDB()
     .then(() => {
