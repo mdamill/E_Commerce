@@ -40,20 +40,20 @@ export const login = async (req, res) => {
     const { email, password } = req.body;
 
     // console.log(email, password);
-    
+
 
     try {
 
         const user = await User.findOne({ email });
         if (!user) return res.json({ message: "User Not Found !", success: false });
-        
+
         // password validation
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) return res.json({ message: "Invalid Password !", success: false });
 
         // generating jwt token
-        const token = jwt.sign({userId : user._id}, process.env.JWT_SECRET, {
-            expiresIn : "1d"
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+            expiresIn: "1d"
         })
 
         res.json({
@@ -89,4 +89,10 @@ export const users = async (req, res) => {
         })
     }
 };
+
+// get user's profile
+
+export const profile = async (req, res) => {
+    res.json({ user: req.user })
+}
 
