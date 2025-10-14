@@ -1,10 +1,14 @@
 import React from 'react'
+import ShowProduct from './components/product/ShowProduct'
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
   return (
-    <div>
-      <h1>this is working fine</h1>
-    </div>
+    <Router>
+      <Routes>
+        <Route path='/' element={<ShowProduct />} />
+      </Routes>
+    </Router>
   )
 }
 
