@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
+import RelatedProducts from './RelatedProducts'
 
 function ProductDetail() {
 
@@ -69,6 +70,8 @@ function ProductDetail() {
         </div>
       </div>
 
+      {/* Related Products */}
+      <RelatedProducts category={product.category} />
 
     </>
   )
