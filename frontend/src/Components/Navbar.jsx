@@ -1,10 +1,12 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import AppContext from '../Context/AppContext';
 
 function Navbar() {
 
   const [searchTerm, setSearchTerm] = useState("");
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const {logout} = useContext(AppContext)
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -38,7 +40,13 @@ function Navbar() {
             <button className="btn">profile</button>
             <Link to={'/login'} className="btn ">login</Link>
             <Link to={'/register'} className="btn ">register</Link>
-            <button className="btn">logout</button>
+            <button
+            className="btn"
+            onClick={()=>{
+              logout();
+              navigate('/')
+            }}
+            >logout</button>
           </div>
         </div>
         <div className="sub_bar"></div>

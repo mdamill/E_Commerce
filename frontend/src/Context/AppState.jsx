@@ -89,6 +89,27 @@ function AppState(props) {
     return api.data;
   };
 
+  // logout user
+  const logout = () => {
+
+    setIsAuthenticated(false);
+    setToken("");
+    localStorage.removeItem('token');
+
+    // toastify for UI
+    toast.info("Logout Successfully...!", {
+      position: "top-right",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+      transition: Bounce,
+    });
+  }
+
 
   return (
     <AppContext.Provider
@@ -96,6 +117,7 @@ function AppState(props) {
         products,
         register,
         login,
+        logout,
       }}>
       {props.children}
     </AppContext.Provider>
