@@ -5,11 +5,13 @@ import ProductDetail from './Components/product/ProductDetail'
 import Navbar from './Components/Navbar';
 import SearchProduct from './Components/product/SearchProduct';
 import Register from './Components/user/Register'
+import { ToastContainer, toast } from 'react-toastify';
 
 function App() {
   return (
     <Router>
       <Navbar />
+      <ToastContainer/>
       <Routes>
         <Route path='/' element={<ShowProduct />} />
         <Route path='/product/search/:term' element={<SearchProduct />} />

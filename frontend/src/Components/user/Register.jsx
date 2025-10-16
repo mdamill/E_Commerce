@@ -1,12 +1,20 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
+import AppContext from '../../Context/AppContext';
+import { useNavigate } from 'react-router-dom';
 
 function Register() {
 
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: ""
   })
+
+  const navigate = useNavigate()
+
+  // for registering data
+  const {register} = useContext(AppContext);
+  const {username, email, password} = formData;
 
   const onChangeHandler = (e) => {
 
@@ -15,9 +23,15 @@ function Register() {
 
   }
 
-  const submitHandler = (e) => {
+  const submitHandler = async(e) => {
     e.preventDefault();
-    alert(`form submitted !`)
+    
+    const result = await register({username, email, password});
+
+    if(result.success){
+      navigate('/login')
+    }
+
     // console.log(formData);
 
   }
@@ -34,8 +48,8 @@ function Register() {
               Name
             </label>
             <input
-              name='name'
-              value={formData.name}
+              name='username'
+              value={formData.username}
               onChange={onChangeHandler}
               type="text"
               className="form-control"
