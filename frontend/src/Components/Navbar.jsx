@@ -36,8 +36,8 @@ function Navbar() {
           <div className="right">
             <button className="btn">cart</button>
             <button className="btn">profile</button>
-            <button className="btn ">login</button>
-            <Link to={'/register'} className="btn btn-info">register</Link>
+            <Link to={'/login'} className="btn ">login</Link>
+            <Link to={'/register'} className="btn ">register</Link>
             <button className="btn">logout</button>
           </div>
         </div>

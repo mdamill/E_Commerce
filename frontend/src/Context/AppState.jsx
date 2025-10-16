@@ -10,6 +10,9 @@ function AppState(props) {
 
   const [products, setProducts] = useState([])
 
+  const [token, setToken] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   useEffect(() => {
 
     const fetchProducts = async () => {
@@ -39,16 +42,49 @@ function AppState(props) {
 
     // toast styling
     toast.success(api.data.message, {
-    position: "top-right",
-    autoClose: 1200,
-    hideProgressBar: false,
-    closeOnClick: false,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "dark",
-    transition: Bounce,
+      position: "top-right",
+      autoClose: 1200,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+      transition: Bounce,
     });
+
+    return api.data;
+  };
+
+  // login user
+  const login = async ({ email, password }) => {
+
+    const api = await axios.post(`${url}/user/login`, { email, password }, {
+      headers: {
+        "Content-Type": "Application/json"
+      },
+      withCredentials: true
+    });
+
+    // toast styling
+    toast.success(api.data.message, {
+      position: "top-right",
+      autoClose: 1200,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+      transition: Bounce,
+    });
+
+    // token handling
+    const tokenFromApi = api.data.token;
+    setToken(tokenFromApi)
+    localStorage.setItem('token', tokenFromApi);
+
+    setIsAuthenticated(true)
 
     return api.data;
   };
@@ -59,6 +95,7 @@ function AppState(props) {
       value={{
         products,
         register,
+        login,
       }}>
       {props.children}
     </AppContext.Provider>

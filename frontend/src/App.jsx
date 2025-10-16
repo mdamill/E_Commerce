@@ -5,6 +5,7 @@ import ProductDetail from './Components/product/ProductDetail'
 import Navbar from './Components/Navbar';
 import SearchProduct from './Components/product/SearchProduct';
 import Register from './Components/user/Register'
+import Login from './Components/user/Login'
 import { ToastContainer, toast } from 'react-toastify';
 
 function App() {
@@ -17,6 +18,8 @@ function App() {
         <Route path='/product/search/:term' element={<SearchProduct />} />
         <Route path='/product/:id' element={<ProductDetail />} />
         <Route path='/register' element={<Register />} />
+        <Route path='/login' element={<Login />} />
+        
       </Routes>
     </Router>
   )
