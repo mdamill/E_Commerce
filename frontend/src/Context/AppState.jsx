@@ -6,15 +6,12 @@ import { toast, Bounce } from 'react-toastify';
 function AppState(props) {
 
   const url = import.meta.env.VITE_URL;
-  // console.log(url); 
-
   const [products, setProducts] = useState([])
-
   const [token, setToken] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [filteredData, setFilteredData] = useState([])
 
   useEffect(() => {
-
     const fetchProducts = async () => {
 
       const response = await axios.get(`${url}/product/all`, {
@@ -26,10 +23,11 @@ function AppState(props) {
 
       // console.log(response.data.allProducts);
       setProducts(response.data.allProducts);
+      setFilteredData(response.data.allProducts);
 
     }
     fetchProducts()
-  }, [])
+  }, [token])
 
   // register user
   const register = async ({ username, email, password }) => {
@@ -116,6 +114,9 @@ function AppState(props) {
       value={{
         products,
         isAuthenticated,
+        setIsAuthenticated,
+        filteredData,
+        setFilteredData,
         register,
         login,
         logout,
