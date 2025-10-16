@@ -6,7 +6,7 @@ function Navbar() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
-  const {logout} = useContext(AppContext)
+  const { logout, isAuthenticated } = useContext(AppContext)
 
   const submitHandler = (e) => {
     e.preventDefault();
@@ -36,17 +36,26 @@ function Navbar() {
 
           {/* Right Section */}
           <div className="right">
-            <button className="btn">cart</button>
-            <button className="btn">profile</button>
-            <Link to={'/login'} className="btn ">login</Link>
-            <Link to={'/register'} className="btn ">register</Link>
-            <button
-            className="btn"
-            onClick={()=>{
-              logout();
-              navigate('/')
-            }}
-            >logout</button>
+
+            {isAuthenticated && (
+              <>
+                <button className="btn">cart</button>
+                <button className="btn">profile</button>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    logout();
+                    navigate('/')
+                  }}
+                >logout</button>
+              </>
+            )}
+
+            {!isAuthenticated && (<>
+              <Link to={'/login'} className="btn ">login</Link>
+              <Link to={'/register'} className="btn ">register</Link>
+            </>)}
+
           </div>
         </div>
         <div className="sub_bar"></div>

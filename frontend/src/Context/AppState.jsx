@@ -115,6 +115,7 @@ function AppState(props) {
     <AppContext.Provider
       value={{
         products,
+        isAuthenticated,
         register,
         login,
         logout,
