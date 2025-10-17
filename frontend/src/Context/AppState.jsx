@@ -10,24 +10,36 @@ function AppState(props) {
   const [token, setToken] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [filteredData, setFilteredData] = useState([])
+  const [user, setUser] = useState()
 
   useEffect(() => {
     const fetchProducts = async () => {
 
-      const response = await axios.get(`${url}/product/all`, {
+      const api = await axios.get(`${url}/product/all`, {
         headers: {
           "Content-Type": "Application/json",
         },
         withCredentials: true,
       });
 
-      // console.log(response.data.allProducts);
-      setProducts(response.data.allProducts);
-      setFilteredData(response.data.allProducts);
-
+      // console.log(api.data.allProducts);
+      setProducts(api.data.allProducts);
+      setFilteredData(api.data.allProducts);
+      userProfile();
     }
     fetchProducts()
   }, [token])
+
+    useEffect(() => {
+    let lstoken = localStorage.getItem("token");
+    // console.log("ls token ",lstoken)
+    if (lstoken) {
+      setToken(lstoken);
+      setIsAuthenticated(true);
+    }
+
+    // setToken(localStorage.getItem('token'))
+  }, []);
 
   // register user
   const register = async ({ username, email, password }) => {
@@ -108,6 +120,20 @@ function AppState(props) {
     });
   }
 
+  // user's profile
+  const userProfile = async () => {
+    const api = await axios.get(`${url}/user/profile`, {
+      headers: {
+        "Content-Type": "Application/json",
+        Authorization : token
+      },
+      withCredentials: true
+    });
+
+    // console.log("user profile ",api.data.user);
+    setUser(api.data.user);
+  };
+
 
   return (
     <AppContext.Provider
@@ -120,6 +146,7 @@ function AppState(props) {
         register,
         login,
         logout,
+        user
       }}>
       {props.children}
     </AppContext.Provider>

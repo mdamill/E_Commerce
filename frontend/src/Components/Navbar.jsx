@@ -50,7 +50,7 @@ function Navbar() {
           {isAuthenticated ? (
             <>
               <button className="btn">Cart</button>
-              <button className="btn">Profile</button>
+              <Link to={'/profile'} className="btn">Profile</Link>
               <button
                 className="btn"
                 onClick={() => {
