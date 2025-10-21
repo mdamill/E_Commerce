@@ -1,88 +1,128 @@
-import React, { useContext, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import AppContext from '../Context/AppContext';
+import React, { useContext, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import AppContext from "../Context/AppContext";
 
 
-function Navbar() {
-  const [searchTerm, setSearchTerm] = useState('');
+const Navbar = () => {
+  const [searchTerm, setSearchTerm] = useState(" ");
   const navigate = useNavigate();
-  const { logout, isAuthenticated, setFilteredData, products } = useContext(AppContext);
-  const location = useLocation()
+  const location = useLocation();
 
+  const { setFilteredData, products, logout, isAuthenticated, cart } =
+    useContext(AppContext);
+  // console.log("user cart = ",cart)
+
+  const filterbyCategory = (cat) => {
+    setFilteredData(
+      products.filter(
+        (data) => data.category.toLowerCase() == cat.toLowerCase()
+      )
+    );
+  };
+  const filterbyPrice = (price) => {
+    setFilteredData(products.filter((data) => data.price >= price));
+  };
   const submitHandler = (e) => {
+
     e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/product/search/${searchTerm}`);
-      setSearchTerm('');
-    }
+    navigate(`/product/search/${searchTerm}`);
+    setSearchTerm(" ");
   };
 
-  // filter by category
-  const filterByCategory = (category) => {
-    setFilteredData(products.filter((data) => data?.category?.toLowerCase() == category?.toLowerCase()))
-  }
-  // filter by price
-  const filterByPrice = (price) => {
-    setFilteredData(products.filter((data) => data?.price >= price))
-  }
-
   return (
-    <div className="nav sticky-top">
-      <div className="nav_bar">
-        {/* Left Section */}
-        <Link to="/" className="left">
-          <h3>MERN E-Commerce</h3>
-        </Link>
+    <>
+      <div className="nav sticky-top">
+        <div className="nav_bar">
+          <Link
+            to={"/"}
+            className="left"
+            style={{ textDecoration: "none", color: "white" }}
+          >
+            <h3>MERN E - Commerce</h3>
+          </Link>
+          <form className="search_bar" onSubmit={submitHandler}>
+            <span className="material-symbols-outlined">search</span>{" "}
+            <input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              type="text"
+              placeholder="Search Products..."
+            />
+          </form>
+          <div className="right">
+            {isAuthenticated && (
+              <>
+                <Link
+                  to={"/cart"}
+                  type="button"
+                  className="btn btn-primary position-relative mx-3"
+                >
+                  <span className="material-symbols-outlined">shopping_cart</span>
 
-        {/* Center Search Bar */}
-        <form className="search_bar" onSubmit={submitHandler}>
-          <span className="material-symbols-outlined">search</span>
-          <input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            type="text"
-            placeholder="Search products..."
-          />
-        </form>
+                  {cart?.items?.length > 0 && (
+                    <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                      {cart.items.length}
+                    </span>
+                  )}
+                </Link>
 
-        {/* Right Section */}
-        <div className="right">
-          {isAuthenticated ? (
-            <>
-              <button className="btn">Cart</button>
-              <Link to={'/profile'} className="btn">Profile</Link>
-              <button
-                className="btn"
-                onClick={() => {
-                  logout();
-                  navigate('/');
-                }}
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="btn">Login</Link>
-              <Link to="/register" className="btn">Register</Link>
-            </>
-          )}
+                <Link to={"/profile"} className="btn btn-info mx-3">
+                  profile
+                </Link>
+                
+                <button
+                  className="btn btn-danger mx-3"
+                  onClick={() => {
+                    logout();
+                    navigate("/");
+                  }}
+                >
+                  logout
+                </button>
+              </>
+            )}
+
+            {!isAuthenticated && (
+              <>
+                <Link to={"/login"} className="btn btn-secondary mx-3">
+                  login
+                </Link>
+                <Link to={"/register"} className="btn btn-info mx-3">
+                  register
+                </Link>
+              </>
+            )}
+          </div>
         </div>
+
+        {location.pathname == "/" && (
+          <div className="sub_bar">
+            <div className="items" onClick={() => setFilteredData(products)}>
+              No Filter
+            </div>
+            <div className="items" onClick={() => filterbyCategory("mobile")}>
+              Mobiles
+            </div>
+            <div className="items" onClick={() => filterbyCategory("electronics")}>
+              Keyboard
+            </div>
+            <div className="items" onClick={() => filterbyPrice(100)}>
+              99
+            </div>
+            <div className="items" onClick={() => filterbyPrice(350)}>
+              349
+            </div>
+            <div className="items" onClick={() => filterbyPrice(500)}>
+              499
+            </div>
+            <div className="items" onClick={() => filterbyPrice(100000)}>
+              99999
+            </div>
+          </div>
+        )}
       </div>
-
-      {location.pathname == '/' &&
-        <div className="sub_bar">
-          <div className="items" onClick={() => setFilteredData(products)}>All Items</div>
-          <div className="items" onClick={() => { filterByCategory("mobile") }}>Phones</div>
-          <div className="items" onClick={() => { filterByCategory("electronics") }}>Keyboards</div>
-          <div className="items" onClick={() => filterByPrice(100)}>100</div>
-          <div className="items" onClick={() => filterByPrice(200)}>200</div>
-          <div className="items" onClick={() => filterByPrice(1000)}>1000</div>
-        </div>
-      }
-
-    </div>
+    </>
   );
-}
+};
 
 export default Navbar;

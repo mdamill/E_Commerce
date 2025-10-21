@@ -7,13 +7,15 @@ import SearchProduct from './Components/product/SearchProduct';
 import Register from './Components/user/Register'
 import Login from './Components/user/Login'
 import Profile from './Components/user/Profile'
+import Cart from './Components/Cart'
 import { ToastContainer, toast } from 'react-toastify';
+import Address from './Components/Address';
 
 function App() {
   return (
     <Router>
       <Navbar />
-      <ToastContainer/>
+      <ToastContainer />
       <Routes>
         <Route path='/' element={<ShowProduct />} />
         <Route path='/product/search/:term' element={<SearchProduct />} />
@@ -21,7 +23,9 @@ function App() {
         <Route path='/register' element={<Register />} />
         <Route path='/login' element={<Login />} />
         <Route path='/profile' element={<Profile />} />
-        
+        <Route path='/cart' element={<Cart />} />
+        <Route path='/shipping' element={<Address />} />
+
       </Routes>
     </Router>
   )
