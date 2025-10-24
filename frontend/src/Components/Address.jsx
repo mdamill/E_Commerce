@@ -16,7 +16,7 @@ function Address() {
   })
 
   const {shippingAddress, userAddress} = useContext(AppContext);
-  console.log(userAddress);
+  // console.log(userAddress);
   
   
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ function Address() {
 
     const result = await shippingAddress(formData)
 
-    console.log(result)
+    // console.log(result)
 
     if (result.success) {
       navigate("/checkout");

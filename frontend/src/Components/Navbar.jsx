@@ -8,8 +8,14 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { setFilteredData, products, logout, isAuthenticated, cart } =
-    useContext(AppContext);
+  const {
+    setFilteredData,
+    products,
+    logout,
+    isAuthenticated,
+    cart,
+    user // <-- 1. Get the user from context
+  } = useContext(AppContext);
   // console.log("user cart = ",cart)
 
   const filterbyCategory = (cat) => {
@@ -52,6 +58,13 @@ const Navbar = () => {
           <div className="right">
             {isAuthenticated && (
               <>
+                {/* 2. Conditionally render the Admin Dashboard link */}
+                {user && user.role === 'admin' && (
+                  <Link to={"/admin"} className="btn btn-warning mx-3">
+                    Dashboard
+                  </Link>
+                )}
+
                 <Link
                   to={"/cart"}
                   type="button"

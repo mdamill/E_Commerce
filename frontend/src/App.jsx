@@ -12,6 +12,11 @@ import { ToastContainer, toast } from 'react-toastify';
 import Address from './Components/Address';
 import Checkout from './Components/Checkout';
 import OrderConfirmation from './Components/OrderConfirmation';
+import AdminProducts from './Components/admin/AdminProducts';
+import AdminUsers from './Components/admin/AdminUsers';
+import AdminAddProduct from './Components/admin/AdminAddProduct';
+import AdminEditProduct from './Components/admin/AdminEditProduct';
+import AdminOrders from './Components/admin/AdminOrders'
 
 function App() {
   return (
@@ -29,6 +34,15 @@ function App() {
         <Route path='/shipping' element={<Address />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
+
+        {/* --- New Admin Routes (Flat Structure) --- */}
+          <Route path="/admin" element={<AdminOrders />} /> 
+          <Route path="/admin/orders" element={<AdminOrders />} />
+          <Route path="/admin/products" element={<AdminProducts />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/products/add" element={<AdminAddProduct />} />
+          <Route path="/admin/products/edit/:id" element={<AdminEditProduct />} /> 
+
       </Routes>
     </Router>
   )

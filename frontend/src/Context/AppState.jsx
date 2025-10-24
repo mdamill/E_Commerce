@@ -7,410 +7,506 @@ function AppState(props) {
 
   const url = import.meta.env.VITE_URL;
   const [products, setProducts] = useState([])
-  const [token, setToken] = useState([]);
+  const [token, setToken] = useState(""); // Default to empty string
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [filteredData, setFilteredData] = useState([])
-  const [user, setUser] = useState();
+  const [user, setUser] = useState(null); // Default to null
   const [cart, setCart] = useState([])
   const [reload, setReload] = useState(false);
   const [userAddress, setUserAddress] = useState("")
 
+  // Helper function to get auth headers with token from localStorage
+  const getAuthHeaders = () => {
+    const tokenFromStorage = localStorage.getItem("token");
+    // Removed console.warn for cleaner logs unless debugging token specifically
+    // if (!tokenFromStorage) {
+    //   console.warn("[AppState] getAuthHeaders - No token found in localStorage.");
+    // }
+    return {
+      "Content-Type": "application/json",
+      Authorization: tokenFromStorage, // Use the fresh token
+    };
+  };
+
+  // Runs ONCE on App Load
   useEffect(() => {
+    const tokenFromStorage = localStorage.getItem("token");
+    if (tokenFromStorage) {
+      setToken(tokenFromStorage);
+      setIsAuthenticated(true); // This might trigger the next useEffect
+    } else {
+        setIsAuthenticated(false); // Ensure it's false if no token
+    }
     const fetchProducts = async () => {
-
-      const api = await axios.get(`${url}/product/all`, {
-        headers: {
-          "Content-Type": "Application/json",
-        },
-        withCredentials: true,
-      });
-
-      // console.log(api.data.allProducts);
-      setProducts(api.data.allProducts);
-      setFilteredData(api.data.allProducts);
-      userProfile();
-      getAddress();
-    }
+      try {
+        // console.log("[AppState] Initial fetchProducts call...");
+        const api = await axios.get(`${url}/product/all`, {
+          headers: { "Content-Type": "Application/json" },
+          withCredentials: true, // Be mindful of CORS settings on backend if using this
+        });
+        // console.log("[AppState] Initial fetchProducts response:", api.data);
+        // Ensure api.data.allProducts is always an array
+        setProducts(Array.isArray(api.data.allProducts) ? api.data.allProducts : []);
+        setFilteredData(Array.isArray(api.data.allProducts) ? api.data.allProducts : []);
+      } catch (error) {
+        console.error("[AppState] Error fetching products on initial load:", error.response?.data || error.message);
+        setProducts([]); // Set empty on error
+        setFilteredData([]);
+      }
+    };
     fetchProducts();
-    userCart();
-  }, [token, reload])
+  }, []); // Empty array ensures this runs only once on mount
 
-  // for user profile
+  // Runs ONLY when user logs in/out OR when 'reload' is triggered
   useEffect(() => {
-    let lstoken = localStorage.getItem("token");
-    // console.log("ls token ",lstoken)
-    if (lstoken) {
-      setToken(lstoken);
-      setIsAuthenticated(true);
+    // Fetch user-specific data only if authenticated
+    if (isAuthenticated) {
+      const fetchUserData = async () => {
+         // console.log("[AppState] Auth detected or reload triggered. Fetching user data...");
+        try {
+          // Fetch products again if reload was triggered
+          // This ensures product list updates after add/edit/delete
+          if (reload) {
+              const productApi = await axios.get(`${url}/product/all`, {
+                  headers: { "Content-Type": "Application/json" },
+                  withCredentials: true,
+              });
+              setProducts(Array.isArray(productApi.data.allProducts) ? productApi.data.allProducts : []);
+              setFilteredData(Array.isArray(productApi.data.allProducts) ? productApi.data.allProducts : []);
+              // console.log("[AppState] Products re-fetched due to reload flag.");
+          }
+          // Fetch profile, address, cart
+          await userProfile();
+          await getAddress();
+          await userCart();
+        } catch (error) {
+          console.error("[AppState] Error fetching user data after auth/reload:", error);
+        } finally {
+            // Reset reload flag if it was true
+            if (reload) setReload(false);
+        }
+      };
+      fetchUserData();
+    } else {
+      // Clear user-specific data on logout or if not authenticated initially
+      setUser(null);
+      setCart([]);
+      setUserAddress("");
+       // Reset reload flag if necessary
+      if (reload) setReload(false);
     }
+    // Dependency array: runs when isAuthenticated or reload changes
+  }, [isAuthenticated, reload]);
 
-    // setToken(localStorage.getItem('token'))
-  }, []);
 
   // register user
   const register = async ({ username, email, password }) => {
-    const api = await axios.post(`${url}/user/register`, { username, email, password }, {
-      headers: {
-        "Content-Type": "Application/json"
-      },
-      withCredentials: true
-    });
-
-    // toast styling
-    toast.success(api.data.message, {
-      position: "top-right",
-      autoClose: 1200,
-      hideProgressBar: false,
-      closeOnClick: false,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "dark",
-      transition: Bounce,
-    });
-
-    return api.data;
+    try {
+      const { data } = await axios.post(`${url}/user/register`, { username, email, password }, {
+        headers: { "Content-Type": "Application/json" },
+        withCredentials: true
+      });
+      toast.success(data.message, { theme: "dark", transition: Bounce });
+      return data;
+    } catch (error) {
+       const message = error.response?.data?.message || "Registration failed";
+       toast.error(message, { theme: "dark", transition: Bounce });
+       console.error("[AppState] Registration Error:", error.response?.data || error.message);
+       return { success: false, message };
+    }
   };
 
   // login user
   const login = async ({ email, password }) => {
-
-    const api = await axios.post(`${url}/user/login`, { email, password }, {
-      headers: {
-        "Content-Type": "Application/json"
-      },
-      withCredentials: true
-    });
-
-
-    if (api.data.success) {
-
-      // toast styling
-      toast.success(api.data.message, {
-        position: "top-right",
-        autoClose: 1200,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-        transition: Bounce,
+    try {
+      const { data } = await axios.post(`${url}/user/login`, { email, password }, {
+        headers: { "Content-Type": "Application/json" },
+        withCredentials: true
       });
 
-      // token handling
-      const tokenFromApi = api.data.token;
-      setToken(tokenFromApi)
-      localStorage.setItem('token', tokenFromApi);
-
-      setIsAuthenticated(true)
-
-    } else {
-      toast.error(api.data.message, {
-        position: "top-right",
-        autoClose: 1200,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-        transition: Bounce,
-      });
-
+      if (data.success) {
+        toast.success(data.message, { theme: "dark", transition: Bounce });
+        const tokenFromApi = data.token;
+        setToken(tokenFromApi); // Keep this to potentially reflect logged-in state if needed elsewhere
+        localStorage.setItem('token', tokenFromApi);
+        setIsAuthenticated(true); // This will trigger the useEffect to fetch user data
+      } else {
+        toast.error(data.message || "Login failed", { theme: "dark", transition: Bounce });
+      }
+      return data;
+    } catch (error) {
+       const message = error.response?.data?.message || "Login failed";
+       toast.error(message, { theme: "dark", transition: Bounce });
+       console.error("[AppState] Login Error:", error.response?.data || error.message);
+       return { success: false, message };
     }
-
-    return api.data;
   };
 
   // logout user
   const logout = () => {
-
-    setIsAuthenticated(false);
+    setIsAuthenticated(false); // Triggers useEffect to clear user data
     setToken("");
     localStorage.removeItem('token');
-
-    // toastify for UI
-    toast.info("Logout Successfully...!", {
-      position: "top-right",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "dark",
-      transition: Bounce,
-    });
+    toast.info("Logout Successfully...!", { theme: "dark", transition: Bounce });
   }
 
   // user's profile
   const userProfile = async () => {
-    const api = await axios.get(`${url}/user/profile`, {
-      headers: {
-        "Content-Type": "Application/json",
-        Authorization: token
-      },
-      withCredentials: true
-    });
+    // Need to check token *before* making the call
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken) return; // Don't attempt if no token
 
-    // console.log("user profile ",api.data.user);
-    setUser(api.data.user);
+    try {
+      const { data } = await axios.get(`${url}/user/profile`, {
+        headers: getAuthHeaders(),
+        withCredentials: true
+      });
+      setUser(data.user);
+    } catch (error) {
+      console.error("[AppState] Error fetching user profile:", error.response?.status, error.response?.data || error.message);
+       if (error.response?.status === 401 || error.response?.status === 403) {
+         // Token might be invalid/expired, log out
+         console.warn("[AppState] Invalid token detected during profile fetch. Logging out.");
+         logout();
+       }
+    }
   };
 
   // add to cart
   const addToCart = async (productId, title, price, qty, imgSrc) => {
     try {
-      const res = await axios.post(
+      const { data } = await axios.post(
         `${url}/cart/add`,
         { productId, title, price, qty, imgSrc },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: token,
-          },
-          withCredentials: true,
-        }
+        { headers: getAuthHeaders(), withCredentials: true }
       );
-
-      toast.success(res.data.message, {
-        position: "top-right",
-        autoClose: 1500,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "dark",
-        transition: Bounce,
-      });
-
-      // ✅ Update the cart in real time
-      if (res.data.cart) {
-        setCart(res.data.cart);
+      toast.success(data.message, { theme: "dark", transition: Bounce });
+      if (data.cart) {
+        setCart(data.cart);
       } else {
-        // fallback — refetch cart if backend didn’t return it
-        userCart();
+        userCart(); // Refetch
       }
-
-    } catch (err) {
-      console.error("Error adding to cart:", err);
-      toast.error("Failed to add item to cart", {
-        position: "top-right",
-        autoClose: 1500,
-        theme: "dark",
-      });
+      return { success: true, ...data }; // Assuming success if no error
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to add item to cart";
+      toast.error(message, { theme: "dark", transition: Bounce });
+      console.error("[AppState] AddToCart Error:", error.response?.data || error.message);
+      return { success: false, message };
     }
   };
 
   // user cart
   const userCart = async () => {
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken) return; // Don't attempt if no token
+
     try {
-      const api = await axios.get(`${url}/cart/user`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: token,
-        },
+      const { data } = await axios.get(`${url}/cart/user`, {
+        headers: getAuthHeaders(),
         withCredentials: true,
       });
-
-      if (api.data.cart) {
-        setCart(api.data.cart);
-      }
-    } catch (err) {
-      console.error("Error fetching cart:", err);
+      setCart(data.cart || []); // Set empty array if no cart
+    } catch (error) {
+       if (error.response?.status !== 404) { // Ignore 404 (no cart yet)
+         console.error("[AppState] Error fetching cart:", error.response?.status, error.response?.data || error.message);
+       }
+        setCart([]); // Ensure cart is empty on error/404
     }
   };
 
   // decrease product's quantity
   const decreaseQty = async (productId, qty) => {
-
-    const api = await axios.post(
-      `${url}/cart/--qty`,
-      { productId, qty },
-      {
-        headers: {
-          "Content-Type": "Application/json",
-          Authorization: token,
-        },
-        withCredentials: true,
-      }
-    );
-    setReload(!reload);
-
-    toast.info(api.data.message, {
-      position: "top-right",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "dark",
-      transition: Bounce,
-    });
-
+    try {
+      const { data } = await axios.post(
+        `${url}/cart/--qty`,
+        { productId, qty },
+        { headers: getAuthHeaders(), withCredentials: true }
+      );
+      // Don't setReload here, let userCart handle update if needed based on response
+      userCart(); // Refetch cart to get updated quantities/totals
+      toast.info(data.message, { theme: "dark", transition: Bounce });
+      return { success: true, ...data };
+    } catch (error) {
+       const message = error.response?.data?.message || "Failed to decrease quantity";
+       toast.error(message, { theme: "dark", transition: Bounce });
+       console.error("[AppState] DecreaseQty Error:", error.response?.data || error.message);
+       return { success: false, message };
+    }
   }
 
   //  remove Item from cart
   const removeFromCart = async (productId) => {
-    const api = await axios.delete(`${url}/cart/remove/${productId}`, {
-      headers: {
-        "Content-Type": "Application/json",
-        Authorization: token,
-      },
-      withCredentials: true,
-    });
-    setReload(!reload);
-    // console.log("remove item from cart ",api);
-    toast.error(api.data.message, {
-      position: "top-right",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "dark",
-      transition: Bounce,
-    });
-    //  setCart(api.data.cart);
-    //  setUser("user cart ",api);
+    try {
+      const { data } = await axios.delete(`${url}/cart/remove/${productId}`, {
+        headers: getAuthHeaders(),
+        withCredentials: true,
+      });
+      userCart(); // Refetch cart
+      // Use success toast if successful, error if not? Backend response dictates.
+      // Assuming message indicates success here based on original code.
+      toast.success(data.message, { theme: "dark", transition: Bounce });
+      return { success: true, ...data };
+    } catch (error) {
+       const message = error.response?.data?.message || "Failed to remove item";
+       toast.error(message, { theme: "dark", transition: Bounce });
+       console.error("[AppState] RemoveFromCart Error:", error.response?.data || error.message);
+       return { success: false, message };
+    }
   };
 
   //  clear Cart
   const clearCart = async () => {
-
-    const api = await axios.delete(`${url}/cart/clear`, {
-      headers: {
-        "Content-Type": "Application/json",
-        Authorization: token,
-      },
-      withCredentials: true,
-    });
-    setReload(!reload);
-    // console.log("remove item from cart ",api);
-    toast.success(api.data.message, {
-      position: "top-right",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "dark",
-      transition: Bounce,
-    });
-    //  setCart(api.data.cart);
-    //  setUser("user cart ",api);
+    try {
+      const { data } = await axios.delete(`${url}/cart/clear`, {
+        headers: getAuthHeaders(),
+        withCredentials: true,
+      });
+      userCart(); // Refetch cart (will be empty)
+      toast.success(data.message, { theme: "dark", transition: Bounce });
+      return { success: true, ...data };
+    } catch (error) {
+        const message = error.response?.data?.message || "Failed to clear cart";
+        toast.error(message, { theme: "dark", transition: Bounce });
+        console.error("[AppState] ClearCart Error:", error.response?.data || error.message);
+        return { success: false, message };
+    }
   };
 
   // add shipping address
-  const shippingAddress = async (data) => {
-
-    const api = await axios.post(
-      `${url}/address/add`,
-      data,
-      {
-        headers: {
-          "Content-Type": "Application/json",
-          Authorization: token,
-        },
-        withCredentials: true,
-      }
-    )
-
-    setReload(!reload);
-
-    // toast styling
-    toast.info(api.data.message, {
-      position: "top-right",
-      autoClose: 1500,
-      hideProgressBar: false,
-      closeOnClick: true,
-      pauseOnHover: true,
-      draggable: true,
-      progress: undefined,
-      theme: "dark",
-      transition: Bounce,
-    });
-
-    return api.data;
+  const shippingAddress = async (addressData) => {
+    try {
+      const { data } = await axios.post(
+        `${url}/address/add`,
+        addressData,
+        { headers: getAuthHeaders(), withCredentials: true }
+      )
+      getAddress(); // Refetch address
+      toast.info(data.message, { theme: "dark", transition: Bounce });
+      return { success: true, ...data }; // Assuming success
+    } catch (error) {
+       const message = error.response?.data?.message || "Failed to save address";
+       toast.error(message, { theme: "dark", transition: Bounce });
+       console.error("[AppState] ShippingAddress Error:", error.response?.data || error.message);
+       return { success: false, message };
+    }
   }
 
   // get latest address
   const getAddress = async () => {
-    const api = await axios.get(
-      `${url}/address/get`,
-      {
-        headers: {
-          "Content-Type": "Application/json",
-          Authorization: token,
-        },
-        withCredentials: true,
-      }
-    )
-    // console.log("get address : ",api.data.userAddress);
-    setUserAddress(api.data.userAddress);
+    const currentToken = localStorage.getItem("token");
+    if (!currentToken) return; // Don't attempt if no token
 
+    try {
+      const { data } = await axios.get(
+        `${url}/address/get`,
+        { headers: getAuthHeaders(), withCredentials: true }
+      )
+      setUserAddress(data.userAddress || ""); // Set empty string if none
+    } catch (error) {
+       if (error.response?.status !== 404) { // Ignore 404 (no address saved)
+         console.error("[AppState] Error fetching address:", error.response?.status, error.response?.data || error.message);
+       }
+       setUserAddress(""); // Ensure address is empty on error/404
+    }
   }
 
   // confirm order
-const confirmOrder = async (cart, userAddress, user) => {
-  try {
-    if (!cart?.items?.length) {
-      toast.error("Your cart is empty!", {
-        position: "top-right",
-        autoClose: 1500,
-        theme: "dark",
+// confirm order
+  const confirmOrder = async (currentCart, currentAddress, currentUser) => {
+    try {
+      if (!currentCart?.items?.length) {
+        toast.error("Your cart is empty!", { theme: "dark", transition: Bounce }); return null;
+      }
+      if (!currentAddress) {
+        toast.error("Please provide a shipping address.", { theme: "dark", transition: Bounce }); return null;
+      }
+      if (!currentUser?._id) {
+        toast.error("User information is missing.", { theme: "dark", transition: Bounce }); return null;
+      }
+
+      // --- CALCULATE TOTALS HERE ---
+      const totalQty = currentCart.items.reduce((acc, item) => acc + item.qty, 0);
+      // Ensure price calculation considers quantity for each item
+      const totalPrice = currentCart.items.reduce((acc, item) => acc + (item.price * item.qty), 0);
+
+
+      const orderData = {
+        userId: currentUser._id,
+        items: currentCart.items.map(item => ({
+          productId: item.productId,
+          name: item.title, // Make sure 'title' exists on cart items
+          qty: item.qty,
+          price: item.price, // Price per item
+        })),
+        address: currentAddress,
+        totalQty: totalQty,    // <-- SEND totalQty
+        totalPrice: totalPrice,  // <-- SEND totalPrice
+      };
+
+      // --- Log the data being sent ---
+      // console.log("[AppState] confirmOrder - Sending orderData:", JSON.stringify(orderData, null, 2));
+
+
+      const { data } = await axios.post(`${url}/order`, orderData, { // Ensure this URL matches your backend route (e.g., /api/order)
+        headers: getAuthHeaders(),
+        withCredentials: true,
       });
+
+      toast.success("Order Confirmed Successfully!", { theme: "dark", transition: Bounce });
+      userCart(); // Fetch the now empty cart
+      return data.order; // Return the saved order from backend response
+
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to confirm order";
+      toast.error(message, { theme: "dark", transition: Bounce });
+      // Log the detailed error from the backend response if available
+      console.error("[AppState] ConfirmOrder Error:", error.response?.status, error.response?.data || error.message);
       return null;
     }
+  };
 
-    const orderData = {
-      userId: user?._id,
-      items: cart.items.map(item => ({
-        productId: item.productId,
-        name: item.title,
-        qty: item.qty,
-        price: item.price,
-      })),
-      address: userAddress,
-      totalQty: cart.items.reduce((acc, item) => acc + item.qty, 0),
-      totalPrice: cart.items.reduce((acc, item) => acc + item.price, 0),
-    };
+  // ==========================================================
+  // --- ADMIN FUNCTIONS ---
+  // ==========================================================
 
-    const api = await axios.post(`${url}/order`, orderData, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token,
-      },
-      withCredentials: true,
-    });
+  // Admin: Get all orders
+  const getAllOrders = async () => {
+    try {
+      const { data } = await axios.get(`${url}/admin/orders`, {
+        headers: getAuthHeaders(), withCredentials: true,
+      });
+       // console.log("[AppState] getAllOrders - Backend Response:", data);
+       return { success: true, ...data }; // Add success flag
+    } catch (error) {
+      const message = error.response?.data?.message || 'Server error fetching orders';
+      toast.error(message, { theme: "dark", transition: Bounce });
+      console.error("[AppState] getAllOrders Error:", error.response?.status, error.response?.data || error.message);
+      return { success: false, message };
+    }
+  };
 
-    toast.success("Order Confirmed Successfully!", {
-      position: "top-right",
-      autoClose: 1500,
-      theme: "dark",
-    });
+  // Admin: Update order status
+  const updateOrderStatus = async (orderId, status) => {
+    try {
+      const { data } = await axios.put(`${url}/admin/order/${orderId}/status`,
+        { status }, { headers: getAuthHeaders(), withCredentials: true }
+      );
+       // console.log("[AppState] updateOrderStatus - Backend Response:", data);
+       return { success: true, ...data }; // Add success flag
+    } catch (error) {
+      const message = error.response?.data?.message || 'Server error updating order status';
+      toast.error(message, { theme: "dark", transition: Bounce });
+      console.error("[AppState] updateOrderStatus Error:", error.response?.status, error.response?.data || error.message);
+      return { success: false, message };
+    }
+  };
 
-    return api.data.order; // Return saved order object
-  } catch (err) {
-    console.error("Error confirming order:", err);
-    toast.error("Failed to confirm order", {
-      position: "top-right",
-      autoClose: 1500,
-      theme: "dark",
-    });
-    return null;
-  }
-};
+  // Admin: Get all users
+  const getAllUsers = async () => {
+    try {
+      const { data } = await axios.get(`${url}/admin/users`, {
+        headers: getAuthHeaders(), withCredentials: true,
+      });
+       // console.log("[AppState] getAllUsers - Backend Response:", data);
+       return { success: true, ...data }; // Add success flag
+    } catch (error) {
+      const message = error.response?.data?.message || 'Server error fetching users';
+      toast.error(message, { theme: "dark", transition: Bounce });
+      console.error("[AppState] getAllUsers Error:", error.response?.status, error.response?.data || error.message);
+      return { success: false, message };
+    }
+  };
 
+  // Admin: Update user role
+  const adminUpdateUserRole = async (userId, role) => {
+    try {
+      const { data } = await axios.put(`${url}/admin/user/${userId}/role`,
+        { role }, { headers: getAuthHeaders(), withCredentials: true }
+      );
+      // console.log("[AppState] adminUpdateUserRole - Backend Response:", data);
+      return { success: true, ...data }; // Add success flag
+    } catch (error) {
+      const message = error.response?.data?.message || 'Server error updating user role';
+      toast.error(message, { theme: "dark", transition: Bounce });
+      console.error("[AppState] adminUpdateUserRole Error:", error.response?.status, error.response?.data || error.message);
+      return { success: false, message };
+    }
+  };
+
+  // Admin: Add product
+  const adminAddProduct = async (productData) => {
+    // Ensure productData includes 'qty' as required by backend model
+    const dataToSend = { ...productData, qty: productData.qty ?? 0 }; // Default qty to 0 if missing
+    //  console.log("[AppState] adminAddProduct - Sending data:", dataToSend);
+    try {
+      const { data } = await axios.post(`${url}/admin/product/add`,
+        dataToSend, // Use data with 'qty'
+        { headers: getAuthHeaders(), withCredentials: true }
+      );
+      // console.log("[AppState] adminAddProduct - Backend Response:", data);
+      setReload(true); // Trigger reload to fetch updated products
+      return { success: true, ...data }; // Add success flag
+    } catch (error) {
+      const message = error.response?.data?.message || 'Server error adding product';
+      // More specific error for validation issues
+       const validationError = error.response?.data?.error;
+       const displayMessage = validationError ? `Validation Error: ${validationError}` : message;
+
+      toast.error(displayMessage, { theme: "dark", transition: Bounce });
+      console.error("[AppState] adminAddProduct Error:", error.response?.status, error.response?.data || error.message);
+      return { success: false, message: displayMessage };
+    }
+  };
+
+  // Admin: Update product
+  const adminUpdateProduct = async (productId, productData) => {
+     // Ensure productData includes 'qty' as required by backend model
+    const dataToSend = { ...productData, qty: productData.qty ?? 0 }; // Default qty to 0 if missing
+    // console.log("[AppState] adminUpdateProduct - Sending data for ID", productId, ":", dataToSend);
+    try {
+      const { data } = await axios.put(`${url}/admin/product/${productId}`,
+        dataToSend, // Use data with 'qty'
+        { headers: getAuthHeaders(), withCredentials: true }
+      );
+      //  console.log("[AppState] adminUpdateProduct - Backend Response:", data);
+      setReload(true); // Trigger reload to fetch updated products
+      return { success: true, ...data }; // Add success flag
+    } catch (error) {
+      const message = error.response?.data?.message || 'Server error updating product';
+       const validationError = error.response?.data?.error;
+       const displayMessage = validationError ? `Validation Error: ${validationError}` : message;
+
+      toast.error(displayMessage, { theme: "dark", transition: Bounce });
+      console.error("[AppState] adminUpdateProduct Error:", error.response?.status, error.response?.data || error.message);
+      return { success: false, message: displayMessage };
+    }
+  };
+
+  // Admin: Delete product
+  const adminDeleteProduct = async (productId) => {
+    // console.log("[AppState] adminDeleteProduct - Deleting ID:", productId);
+    try {
+      const { data } = await axios.delete(`${url}/admin/product/${productId}`, {
+        headers: getAuthHeaders(), withCredentials: true,
+      });
+      //  console.log("[AppState] adminDeleteProduct - Backend Response:", data);
+      setReload(true); // Trigger reload to fetch updated products
+      // Add success flag based on expected message
+      const success = data.message === "Product deleted successfully";
+      return { success, ...data };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Server error deleting product';
+      toast.error(message, { theme: "dark", transition: Bounce });
+      console.error("[AppState] adminDeleteProduct Error:", error.response?.status, error.response?.data || error.message);
+      return { success: false, message };
+    }
+  };
 
 
   return (
     <AppContext.Provider
       value={{
+        // Original values
         products,
         isAuthenticated,
         setIsAuthenticated,
@@ -428,6 +524,15 @@ const confirmOrder = async (cart, userAddress, user) => {
         shippingAddress,
         userAddress,
         confirmOrder,
+
+        // New Admin values
+        getAllOrders,
+        updateOrderStatus,
+        getAllUsers,
+        adminUpdateUserRole,
+        adminAddProduct,
+        adminUpdateProduct,
+        adminDeleteProduct,
       }}>
       {props.children}
     </AppContext.Provider>
@@ -435,3 +540,4 @@ const confirmOrder = async (cart, userAddress, user) => {
 }
 
 export default AppState
+
