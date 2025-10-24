@@ -4,11 +4,13 @@ import {
   getAllOrders,
   getUserOrders,
 } from "../Controllers/order.controller.js";
+import { isAuthenticated } from "../Middleware/isAuthenticated.js";
+
 
 const router = express.Router();
 
 // POST → Create new order
-router.post("/", createOrder);
+router.post("/",isAuthenticated, createOrder);
 
 // GET → Admin: Get all orders
 router.get("/", getAllOrders);

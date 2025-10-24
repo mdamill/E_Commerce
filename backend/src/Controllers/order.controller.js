@@ -3,29 +3,40 @@ import Order from "../Models/order.model.js";
 // Create a new order (called when user confirms order)
 export const createOrder = async (req, res) => {
   try {
-    const { userId, items, address, totalQty, totalPrice } = req.body;
+    const userId = req.user._id; // Assuming you get user ID from auth middleware
 
-    if (!items || !items.length || !userId) {
-      return res.status(400).json({ message: "Missing required fields" });
+    // --- Make sure to extract totalQty and totalPrice from req.body ---
+    const { items, address, totalQty, totalPrice } = req.body;
+
+    // Basic validation (optional here, Mongoose does it too)
+    if (!items || items.length === 0 || !address || totalQty === undefined || totalPrice === undefined) {
+       return res.status(400).json({ success: false, message: "Missing required order data." });
     }
+
 
     const newOrder = new Order({
       userId,
       items,
       address,
-      totalQty,
-      totalPrice,
+      totalQty,    // <-- Include it here
+      totalPrice,  // <-- Include it here
+      // status defaults to 'Pending' based on your model
     });
 
-    await newOrder.save();
+    const savedOrder = await newOrder.save();
 
-    res.status(201).json({
-      message: "Order created successfully",
-      order: newOrder,
-    });
+    // Optionally: Clear the user's cart after successful order creation
+    // await Cart.findOneAndDelete({ userId });
+
+    res.status(201).json({ success: true, message: "Order created successfully", order: savedOrder });
+
   } catch (error) {
-    console.error("Error creating order:", error);
-    res.status(500).json({ message: "Server error", error });
+    console.error("Error creating order:", error); // Log the full error on the server
+    res.status(500).json({
+      success: false,
+      message: "Failed to create order",
+      error: error.message // Send specific error message
+    });
   }
 };
 

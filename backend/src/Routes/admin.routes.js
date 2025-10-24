@@ -6,8 +6,9 @@ import {
   updateProduct,
   deleteProduct,
   updateUserRole,
-  getAllOrders,       
-  updateOrderStatus,  
+  getAllOrders,
+  updateOrderStatus,
+  getAllUsers, 
 } from "../Controllers/admin.controller.js";
 
 const router = express.Router();
@@ -19,8 +20,9 @@ router.delete("/product/:id", isAuthenticated, isAdmin, deleteProduct);
 
 // User role route
 router.put("/user/:id/role", isAuthenticated, isAdmin, updateUserRole);
+router.get("/users", isAuthenticated, isAdmin, getAllUsers); // <-- ADD THIS ROUTE
 
-// Order routes  <-- ADD THESE TWO NEW ROUTES
+// Order routes
 router.get("/orders", isAuthenticated, isAdmin, getAllOrders);
 router.put("/order/:id/status", isAuthenticated, isAdmin, updateOrderStatus);
 
