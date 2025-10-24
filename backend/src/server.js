@@ -7,6 +7,7 @@ import productRouter from './Routes/product.routes.js'
 import cartRouter from './Routes/cart.routes.js'
 import addressRouter from './Routes/address.routes.js'
 import orderRouter from './Routes/order.routes.js';
+import adminRouter from "./Routes/admin.routes.js";
 
 dotenv.config(); // this allows access from the '.env'
 
@@ -39,6 +40,9 @@ app.use('/api/address', addressRouter)
 
 // Router for orders
 app.use('/api/order', orderRouter);
+
+// Route for admin
+app.use("/api/admin", adminRouter);
 
 connectDB()
     .then(() => {
