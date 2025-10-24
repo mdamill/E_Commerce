@@ -7,7 +7,7 @@ export const addAddress = async (req, res) => {
     const { fullName, address, city, state, country, pincode, phoneNumber } = req.body;
 
     const userId = req.user;
-    console.log(req.user);
+    // console.log(req.user);
 
     try {
         const userAddress = await Address.create({

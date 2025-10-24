@@ -10,6 +10,8 @@ import Profile from './Components/user/Profile'
 import Cart from './Components/Cart'
 import { ToastContainer, toast } from 'react-toastify';
 import Address from './Components/Address';
+import Checkout from './Components/Checkout';
+import OrderConfirmation from './Components/OrderConfirmation';
 
 function App() {
   return (
@@ -25,7 +27,8 @@ function App() {
         <Route path='/profile' element={<Profile />} />
         <Route path='/cart' element={<Cart />} />
         <Route path='/shipping' element={<Address />} />
-
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order-confirmation" element={<OrderConfirmation />} />
       </Routes>
     </Router>
   )

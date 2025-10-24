@@ -13,6 +13,7 @@ function AppState(props) {
   const [user, setUser] = useState();
   const [cart, setCart] = useState([])
   const [reload, setReload] = useState(false);
+  const [userAddress, setUserAddress] = useState("")
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -28,6 +29,7 @@ function AppState(props) {
       setProducts(api.data.allProducts);
       setFilteredData(api.data.allProducts);
       userProfile();
+      getAddress();
     }
     fetchProducts();
     userCart();
@@ -80,7 +82,7 @@ function AppState(props) {
       withCredentials: true
     });
 
-    
+
     if (api.data.success) {
 
       // toast styling
@@ -115,7 +117,7 @@ function AppState(props) {
         theme: "dark",
         transition: Bounce,
       });
-      
+
     }
 
     return api.data;
@@ -303,6 +305,108 @@ function AppState(props) {
     //  setUser("user cart ",api);
   };
 
+  // add shipping address
+  const shippingAddress = async (data) => {
+
+    const api = await axios.post(
+      `${url}/address/add`,
+      data,
+      {
+        headers: {
+          "Content-Type": "Application/json",
+          Authorization: token,
+        },
+        withCredentials: true,
+      }
+    )
+
+    setReload(!reload);
+
+    // toast styling
+    toast.info(api.data.message, {
+      position: "top-right",
+      autoClose: 1500,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+      transition: Bounce,
+    });
+
+    return api.data;
+  }
+
+  // get latest address
+  const getAddress = async () => {
+    const api = await axios.get(
+      `${url}/address/get`,
+      {
+        headers: {
+          "Content-Type": "Application/json",
+          Authorization: token,
+        },
+        withCredentials: true,
+      }
+    )
+    // console.log("get address : ",api.data.userAddress);
+    setUserAddress(api.data.userAddress);
+
+  }
+
+  // confirm order
+const confirmOrder = async (cart, userAddress, user) => {
+  try {
+    if (!cart?.items?.length) {
+      toast.error("Your cart is empty!", {
+        position: "top-right",
+        autoClose: 1500,
+        theme: "dark",
+      });
+      return null;
+    }
+
+    const orderData = {
+      userId: user?._id,
+      items: cart.items.map(item => ({
+        productId: item.productId,
+        name: item.title,
+        qty: item.qty,
+        price: item.price,
+      })),
+      address: userAddress,
+      totalQty: cart.items.reduce((acc, item) => acc + item.qty, 0),
+      totalPrice: cart.items.reduce((acc, item) => acc + item.price, 0),
+    };
+
+    const api = await axios.post(`${url}/order`, orderData, {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token,
+      },
+      withCredentials: true,
+    });
+
+    toast.success("Order Confirmed Successfully!", {
+      position: "top-right",
+      autoClose: 1500,
+      theme: "dark",
+    });
+
+    return api.data.order; // Return saved order object
+  } catch (err) {
+    console.error("Error confirming order:", err);
+    toast.error("Failed to confirm order", {
+      position: "top-right",
+      autoClose: 1500,
+      theme: "dark",
+    });
+    return null;
+  }
+};
+
+
 
   return (
     <AppContext.Provider
@@ -321,6 +425,9 @@ function AppState(props) {
         decreaseQty,
         removeFromCart,
         clearCart,
+        shippingAddress,
+        userAddress,
+        confirmOrder,
       }}>
       {props.children}
     </AppContext.Provider>
