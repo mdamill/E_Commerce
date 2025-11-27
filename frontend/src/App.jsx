@@ -1,5 +1,5 @@
 import React from 'react'
-import ShowProduct from './components/product/ShowProduct'
+import ShowProduct from './Components/product/ShowProduct'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import ProductDetail from './Components/product/ProductDetail'
 import Navbar from './Components/Navbar';
@@ -8,7 +8,7 @@ import Register from './Components/user/Register'
 import Login from './Components/user/Login'
 import Profile from './Components/user/Profile'
 import Cart from './Components/Cart'
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import Address from './Components/Address';
 import Checkout from './Components/Checkout';
 import OrderConfirmation from './Components/OrderConfirmation';
@@ -17,6 +17,7 @@ import AdminUsers from './Components/admin/AdminUsers';
 import AdminAddProduct from './Components/admin/AdminAddProduct';
 import AdminEditProduct from './Components/admin/AdminEditProduct';
 import AdminOrders from './Components/admin/AdminOrders'
+
 
 function App() {
   return (
