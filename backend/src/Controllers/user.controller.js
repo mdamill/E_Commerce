@@ -45,6 +45,7 @@ export const login = async (req, res) => {
     try {
 
         const user = await User.findOne({ email });
+        
         if (!user) return res.json({ message: "User Not Found !", success: false });
 
         // password validation

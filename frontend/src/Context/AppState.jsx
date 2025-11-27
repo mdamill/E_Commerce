@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import AppContext from './AppContext'
 import axios from 'axios'
 import { toast, Bounce } from 'react-toastify';
@@ -18,10 +18,6 @@ function AppState(props) {
   // Helper function to get auth headers with token from localStorage
   const getAuthHeaders = () => {
     const tokenFromStorage = localStorage.getItem("token");
-    // Removed console.warn for cleaner logs unless debugging token specifically
-    // if (!tokenFromStorage) {
-    //   console.warn("[AppState] getAuthHeaders - No token found in localStorage.");
-    // }
     return {
       "Content-Type": "application/json",
       Authorization: tokenFromStorage, // Use the fresh token
@@ -39,18 +35,16 @@ function AppState(props) {
     }
     const fetchProducts = async () => {
       try {
-        // console.log("[AppState] Initial fetchProducts call...");
         const api = await axios.get(`${url}/product/all`, {
           headers: { "Content-Type": "Application/json" },
-          withCredentials: true, // Be mindful of CORS settings on backend if using this
+          withCredentials: true, 
         });
-        // console.log("[AppState] Initial fetchProducts response:", api.data);
-        // Ensure api.data.allProducts is always an array
+        
         setProducts(Array.isArray(api.data.allProducts) ? api.data.allProducts : []);
         setFilteredData(Array.isArray(api.data.allProducts) ? api.data.allProducts : []);
       } catch (error) {
         console.error("[AppState] Error fetching products on initial load:", error.response?.data || error.message);
-        setProducts([]); // Set empty on error
+        setProducts([]); 
         setFilteredData([]);
       }
     };
@@ -62,7 +56,6 @@ function AppState(props) {
     // Fetch user-specific data only if authenticated
     if (isAuthenticated) {
       const fetchUserData = async () => {
-         // console.log("[AppState] Auth detected or reload triggered. Fetching user data...");
         try {
           // Fetch products again if reload was triggered
           // This ensures product list updates after add/edit/delete
@@ -73,7 +66,6 @@ function AppState(props) {
               });
               setProducts(Array.isArray(productApi.data.allProducts) ? productApi.data.allProducts : []);
               setFilteredData(Array.isArray(productApi.data.allProducts) ? productApi.data.allProducts : []);
-              // console.log("[AppState] Products re-fetched due to reload flag.");
           }
           // Fetch profile, address, cart
           await userProfile();

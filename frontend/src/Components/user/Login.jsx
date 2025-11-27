@@ -10,7 +10,7 @@ function Login() {
     password: ""
   })
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   // for registering data
   const {login} = useContext(AppContext);
